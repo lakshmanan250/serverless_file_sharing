@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Serverless File Sharing</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #121212, #1e1e1e);
+      color: #fff;
+    }
+
+    header {
+      text-align: center;
+      padding: 40px 0 10px;
+    }
+
+    header h2 {
+      font-size: 2.5rem;
+      color: #00e676;
+      margin: 0;
+    }
+
+    main {
+      background: #222;
+      color: #ddd;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+      text-align: center;
+      width: 90%;
+      max-width: 600px;
+      margin: 100px auto 40px; /* push down and center horizontally */
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #00e676;
+    }
+
+    form {
+      margin-bottom: 20px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    label {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: white;
+      background-color: #007BFF;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    label:hover {
+      background-color: #0056b3;
+    }
+
+    #selected-file {
+      margin-top: 10px;
+      font-style: italic;
+      color: #ccc;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: white;
+      background-color: #28a745;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    #file-list {
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    .file-item {
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .file-item a {
+      color: #03a9f4;
+      text-decoration: none;
+      margin-left: 10px;
+      font-size: 1rem;
+    }
+
+    .file-item a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      width: 100%;
+      text-align: center;
+      padding: 20px 0;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+
+    .icon {
+      font-size: 1.5rem;
+      color: #03a9f4;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2><i class="fas fa-cloud-upload-alt"></i> Serverless File Sharing</h2>
+  </header>
+
+  <main>
+    <h1>Upload Your Files</h1>
+    <form id="upload-form">
+      <label for="file-input"><i class="fas fa-file-upload"></i> Choose File</label>
+      <input type="file" id="file-input" name="file" required />
+      <div id="selected-file">No file chosen</div>
+      <button type="submit"><i class="fas fa-upload"></i> Upload</button>
+    </form>
+    <button id="list-files-btn"><i class="fas fa-list"></i> List Files</button>
+    <div id="file-list"></div>
+  </main>
+
+  <footer>
+    <p>For any queries reach out to <a href="mailto:lakshmanan2230@gmail.com" style="color: #FFD700;">lakshmanan2230@gmail.com</a></p>
+  </footer>
+
+  <script>
+    const uploadForm = document.getElementById('upload-form');
+    const fileInput = document.getElementById('file-input');
+    const listFilesBtn = document.getElementById('list-files-btn');
+    const fileList = document.getElementById('file-list');
+    const selectedFile = document.getElementById('selected-file');
+
+    fileInput.addEventListener('change', () => {
+      selectedFile.textContent = fileInput.files.length
+        ? `Selected file: ${fileInput.files[0].name}`
+        : 'No file chosen';
+    });
+
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      try {
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const result = await response.json();
+        alert(result.message);
+        selectedFile.textContent = 'No file chosen';
+        fileInput.value = '';
+      } catch (error) {
+        alert('Error uploading file');
+      }
+    });
+
+    listFilesBtn.addEventListener('click', async () => {
+      try {
+        const response = await fetch('/files');
+        const result = await response.json();
+        fileList.innerHTML = '';
+        result.files.forEach(file => {
+          const fileItem = document.createElement('div');
+          fileItem.className = 'file-item';
+          fileItem.innerHTML = `<i class="fas fa-file-alt icon"></i><a href="/download/${file}" target="_blank">${file}</a>`;
+          fileList.appendChild(fileItem);
+        });
+      } catch (error) {
+        alert('Error fetching file list');
+      }
+    });
+  </script>
+</body>
+</html>
